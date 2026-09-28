@@ -3,8 +3,10 @@
 // Execute `rustlings hint clippy2` or use the `hint` watch subcommand for a
 // hint.
 
-// I AM NOT DONE
 
+
+#[allow(for_loops_over_fallibles)]
+#[allow(clippy::uninlined_format_args)]
 fn main() {
     let mut res = 42;
     let option = Some(12);

@@ -2,11 +2,11 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
+use std::cmp::PartialOrd;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -29,13 +29,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T: PartialOrd> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T: PartialOrd> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -72,11 +72,71 @@ impl<T> LinkedList<T> {
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
 		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        let mut a = list_a;
+        let mut b = list_b;
+
+        let mut result = LinkedList::new();
+
+        // 我们将不断从 a 或 b 拿出节点附加到 result
+        unsafe {
+            let mut tail_ptr: Option<NonNull<Node<T>>> = None; // 当前结果链的尾部
+
+            let mut a_curr = a.start;
+            let mut b_curr = b.start;
+
+            while a_curr.is_some() || b_curr.is_some() {
+                let next_node = match (a_curr, b_curr) {
+                    (Some(a_node), Some(b_node)) => {
+                        if (*a_node.as_ptr()).val <= (*b_node.as_ptr()).val {
+                            let node = a_node;
+                            a_curr = (*node.as_ptr()).next;
+                            node
+                        } else {
+                            let node = b_node;
+                            b_curr = (*node.as_ptr()).next;
+                            node
+                        }
+                    }
+                    (Some(a_node), None) => {
+                        let node = a_node;
+                        a_curr = (*node.as_ptr()).next;
+                        node
+                    }
+                    (None, Some(b_node)) => {
+                        let node = b_node;
+                        b_curr = (*node.as_ptr()).next;
+                        node
+                    }
+                    (None, None) => unreachable!(),
+                };
+
+                // 将选中的节点加入 result
+                (*next_node.as_ptr()).next = None; // 断开原链接
+
+                match tail_ptr {
+                    None => {
+                        result.start = Some(next_node);
+                    }
+                    Some(tail) => {
+                        (*tail.as_ptr()).next = Some(next_node);
+                    }
+                }
+                tail_ptr = Some(next_node);
+                result.end = Some(next_node);
+                result.length += 1;
+            }
         }
+
+        // 防止 a 和 b 被 drop 时释放节点（因为我们已经转移了所有权）
+        std::mem::forget(a);
+        std::mem::forget(b);
+
+        result
+		// Self {
+        //     length: a.length,
+        //     start: a.start,
+        //     end: a.end,
+        // }
 	}
 }
 

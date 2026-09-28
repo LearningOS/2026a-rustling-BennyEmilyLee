@@ -3,7 +3,7 @@
 	This problem requires you to implement a basic interface for a binary tree
 */
 
-//I AM NOT DONE
+
 use std::cmp::Ordering;
 use std::fmt::Debug;
 
@@ -51,12 +51,24 @@ where
     // Insert a value into the BST
     fn insert(&mut self, value: T) {
         //TODO
+        match self.root.take() {
+            Some(mut node) => {
+                node.insert(value);
+                self.root = Some(node);
+            }
+            None => {
+                self.root = Some(Box::new(TreeNode::new(value)));
+            }
+        }
     }
 
     // Search for a value in the BST
     fn search(&self, value: T) -> bool {
         //TODO
-        true
+        match &self.root {
+            Some(node) => node.search(&value),
+            None => false,
+        }
     }
 }
 
@@ -67,6 +79,53 @@ where
     // Insert a node into the tree
     fn insert(&mut self, value: T) {
         //TODO
+        match value.cmp(&self.value) {
+            std::cmp::Ordering::Less => {
+                match self.left.take() {
+                    Some(mut left_node) => {
+                        left_node.insert(value);
+                        self.left = Some(left_node);
+                    }
+                    None => {
+                        self.left = Some(Box::new(TreeNode::new(value)));
+                    }
+                }
+            }
+            std::cmp::Ordering::Greater => {
+                match self.right.take() {
+                    Some(mut right_node) => {
+                        right_node.insert(value);
+                        self.right = Some(right_node);
+                    }
+                    None => {
+                        self.right = Some(Box::new(TreeNode::new(value)));
+                    }
+                }
+            }
+            std::cmp::Ordering::Equal => {
+                // 值相等时不插入，直接返回
+                return;
+            }
+        }
+    }
+
+    // Search for a value in this subtree
+    fn search(&self, value: &T) -> bool {
+        match value.cmp(&self.value) {
+            std::cmp::Ordering::Equal => true,
+            std::cmp::Ordering::Less => {
+                match &self.left {
+                    Some(node) => node.search(value),
+                    None => false,
+                }
+            }
+            std::cmp::Ordering::Greater => {
+                match &self.right {
+                    Some(node) => node.search(value),
+                    None => false,
+                }
+            }
+        }
     }
 }
 
